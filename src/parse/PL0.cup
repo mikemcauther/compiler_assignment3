@@ -372,9 +372,7 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
             RPAREN
         {:
             Type.ProcedureType procType = new Type.ProcedureType(idxleft);
-            if( pl != null ) {
-                procType.setFormalParams(pl);
-            }
+            procType.setFormalParams(pl);
             SymEntry.ProcedureEntry procEntry =
                     new SymEntry.ProcedureEntry(id, idxleft, procType);
             /* Add an entry for the procedure to the current scope */
