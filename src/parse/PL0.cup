@@ -153,8 +153,7 @@ non terminal DeclNode.ProcedureNode  ProcedureDef;
 non terminal SymEntry.ProcedureEntry ProcedureHead;
 non terminal SymEntry.ParamEntry FormalParam; 
 non terminal List<SymEntry.ParamEntry> FormalParamList;
-non terminal
-                              ActualParamList;
+non terminal List<ExpNode>    ActualParamList;
 non terminal List<StatementNode> StatementList;
 non terminal StatementNode    Statement,
                               CompoundStatement;
@@ -488,7 +487,7 @@ Statement ::= KW_WHILE Condition:c KW_DO Statement:s
        :} 
     |  KW_CALL IDENTIFIER:id LPAREN ActualParamList:pl RPAREN
         {: 
-            RESULT = new StatementNode.CallNode(idxleft, id);
+            RESULT = new StatementNode.CallNode(idxleft, id, pl);
         :}
     |  error:loc
         {: 
@@ -497,7 +496,20 @@ Statement ::= KW_WHILE Condition:c KW_DO Statement:s
     ;
 
 
-ActualParamList ::= /* empty */
+ActualParamList ::= ActualParamList:al COMMA Condition:cd
+        {:
+            al.add(cd);
+            RESULT = al;
+        :}
+    | Condition:cd
+        {:
+            RESULT = new ArrayList<ExpNode>();
+            RESULT.add(cd);
+        :}
+    | /* empty */
+        {:
+            RESULT = new ArrayList<ExpNode>();
+        :}
     ;
 
 LValue ::= IDENTIFIER:id
