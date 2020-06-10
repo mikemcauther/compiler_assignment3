@@ -409,15 +409,14 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
 
 
 /* To allow for the addition of procedure parameters. */
-FormalParamList ::= FormalParam:fp
-        {:
-            RESULT = new ArrayList<SymEntry.ParamEntry>();
-            RESULT.add(fp);
-        :}
-    |  FormalParamList:fl COMMA FormalParam:fp
+FormalParamList ::= FormalParamList:fl COMMA FormalParam:fp
         {:
             fl.add(fp);
             RESULT = fl;
+        :}
+    | /* empty */
+        {:
+            RESULT = new ArrayList<SymEntry.ParamEntry>();
         :}
     ;
 
