@@ -151,8 +151,8 @@ non terminal                  VarDeclSeq,
                               VarDecl;
 non terminal DeclNode.ProcedureNode  ProcedureDef;
 non terminal SymEntry.ProcedureEntry ProcedureHead;
-non terminal 
-                              FormalParamList;
+non terminal SymEntry.ParamEntry FormalParam; 
+non terminal List<SymEntry.ParamEntry> FormalParamList;
 non terminal
                               ActualParamList;
 non terminal List<StatementNode> StatementList;
@@ -371,9 +371,15 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
             LPAREN FormalParamList:pl 
             RPAREN
         {:
+            Type.ProcedureType procType = new Type.ProcedureType(idxleft);
+            if( pl != null ) {
+                procType.setFormalParams(pl);
+            }
+            SymEntry.ProcedureEntry procEntry =
+                    new SymEntry.ProcedureEntry(id, idxleft, procType);
             /* Add an entry for the procedure to the current scope */
-            SymEntry.ProcedureEntry procEntry = currentScope.addProcedure(id, idxleft);
-            if(procEntry == null) {
+            SymEntry entry = currentScope.addEntry(procEntry);
+            if(entry == null) {
                 errors.error(id + " already declared in this scope", idxleft);
                 /* Create a dummy symbol table entry.
                  * Note that this entry isn't added to the symbol table
@@ -403,8 +409,39 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
 
 
 /* To allow for the addition of procedure parameters. */
-FormalParamList ::= /* empty */
+FormalParamList ::= FormalParam:fp
+        {:
+            RESULT = new ArrayList<SymEntry.ParamEntry>();
+            RESULT.add(fp);
+        :}
+    |  FormalParamList:fl COMMA FormalParam:fp
+        {:
+            fl.add(fp);
+            RESULT = fl;
+        :}
     ;
+
+FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:type
+        {: 
+            SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, type, false);
+            if(currentScope.addEntry(entry) == null) {
+                errors.error(id + " duplicate parameter name", idxleft);
+            }
+            RESULT = entry;
+        :}
+    |  KW_VAR IDENTIFIER:id COLON TypeIdentifier:type
+        {: 
+            // Variables are always of ReferenceType.
+            Type.ReferenceType paramType = new Type.ReferenceType(type);
+            SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, paramType, true);
+            if(currentScope.addEntry(entry) == null) {
+                errors.error(id + " duplicate parameter name", idxleft);
+            }
+            RESULT = entry;
+        :}
+    |  error
+    ;
+
 CompoundStatement ::= KW_BEGIN StatementList:sl KW_END
         {:
             RESULT = new StatementNode.ListNode(slxleft,sl);
