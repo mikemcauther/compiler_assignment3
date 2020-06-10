@@ -414,6 +414,11 @@ FormalParamList ::= FormalParamList:fl COMMA FormalParam:fp
             fl.add(fp);
             RESULT = fl;
         :}
+    | FormalParam:fp
+        {:
+            RESULT = new ArrayList<SymEntry.ParamEntry>();
+            RESULT.add(fp);
+        :}
     | /* empty */
         {:
             RESULT = new ArrayList<SymEntry.ParamEntry>();
