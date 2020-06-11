@@ -173,6 +173,21 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
         SymEntry.ProcedureEntry proc = node.getEntry();
         Code code = new Code();
         code.genComment("call:");
+
+        SymEntry.ProcedureEntry procEntry = (SymEntry.ProcedureEntry) proc;
+        Type.ProcedureType procType = (Type.ProcedureType)(procEntry.getType());
+
+        List<ExpNode> actualParamNodeList = node.getActualParams(); 
+        List<SymEntry.ParamEntry> formalParams = procType.getFormalParams();
+        int paramLen = actualParamNodeList.size();
+        for(int paramIdx = paramLen - 1;paramIdx >= 0 ;paramIdx--){
+            SymEntry.ParamEntry formalParam = formalParams.get(paramIdx);
+            Type formalBaseType = ((Type.ReferenceType) formalParam.getType()).getBaseType();
+            ExpNode actualExpNode = actualParamNodeList.get(paramIdx);
+
+            code.append(actualExpNode.genCode(this));
+        }
+
         /* Generate the call instruction. The second parameter is the
          * procedure's symbol table entry. The actual address is resolved
          * at load time.

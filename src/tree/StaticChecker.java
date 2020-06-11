@@ -208,9 +208,11 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                     if( formalParam.isRef() == true ){
                         staticError("var param must be LValue ", node.getLocation());
                     }
+                    /*
                     if( actualParamType != formalBaseType  ){
                         staticError("invalid actual parameter type ", node.getLocation());
                     }
+                    */
                 }
 
                 // <3> Allocate space for formalParam
@@ -226,7 +228,7 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                 }
 
                 // <5> Set ExpNode back to ArrayList
-                actualParamNodeList.add(paramIdx,actualExpNode);
+                actualParamNodeList.set(paramIdx,actualExpNode);
             }
             // <6> Set ExpNode List back to CallNode
             node.setActualParams(actualParamNodeList);
