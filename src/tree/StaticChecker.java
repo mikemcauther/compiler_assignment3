@@ -198,7 +198,7 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                 Type actualPrarmBaseType = null;
 
                 // <1> Do Transform
-                actualExpNode.transform(this);
+                actualExpNode = actualExpNode.transform(this);
                 actualParamType = actualExpNode.getType();
 
                 // <2> Check Is Reference Type
@@ -208,11 +208,9 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                     if( formalParam.isRef() == true ){
                         staticError("var param must be LValue ", node.getLocation());
                     }
-                    /*
                     if( actualParamType != formalBaseType  ){
                         staticError("invalid actual parameter type ", node.getLocation());
                     }
-                    */
                 }
 
                 // <3> Allocate space for formalParam
