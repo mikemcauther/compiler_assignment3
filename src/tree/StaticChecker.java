@@ -231,6 +231,9 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                 if( formalParam.isRef() == false ){
                     actualExpNode = formalBaseType.coerceExp(actualExpNode);
                 } else {
+                    if( ! (actualExpNode instanceof ExpNode.VariableNode) ){
+                        staticError("var param must be LValue", actualExpNode.getLocation());
+                    }
                     //actualExpNode = refType.coerceExp(actualExpNode);
                 }
 

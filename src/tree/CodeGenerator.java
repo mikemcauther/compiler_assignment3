@@ -185,7 +185,25 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
             Type formalBaseType = ((Type.ReferenceType) formalParam.getType()).getBaseType();
             ExpNode actualExpNode = actualParamNodeList.get(paramIdx);
 
-            code.append(actualExpNode.genCode(this));
+            if( formalParam.isRef() == false ){
+                code.append(actualExpNode.genCode(this));
+            } else {
+                if( actualExpNode instanceof ExpNode.VariableNode ) {
+                    // <1> Load rvalue absolute address
+                    // Derived from code.genMemRef(staticLevel - var.getLevel(), var.getOffset());
+                    // Omit generateOp(Operation.TO_LOCAL); , Do this in visitVariable()
+                    SymEntry.VarEntry var = ((ExpNode.VariableNode)actualExpNode).getVariable();
+
+                    int levelDiff = staticLevel - var.getLevel();
+                    int offset = var.getOffset();
+                    code.loadFrameAddress(levelDiff);
+                    /* Add the offset of the variable to get absolute address of variable. */
+                    code.genLoadConstant(offset);
+                    code.generateOp(Operation.ADD);
+                } else {
+                    // Unexpected error
+                }
+            }
         }
 
         /* Generate the call instruction. The second parameter is the
@@ -401,6 +419,15 @@ public class CodeGenerator implements DeclVisitor, StatementTransform<Code>,
         SymEntry.VarEntry var = node.getVariable();
         Code code = new Code();
         code.genMemRef(staticLevel - var.getLevel(), var.getOffset());
+        if( var instanceof SymEntry.ParamEntry ) {
+            SymEntry.ParamEntry paramEntry = (SymEntry.ParamEntry)var;
+            if( paramEntry.isRef() == true ) {
+                //Type varBaseType = ((Type.ReferenceType) node.getType()).getBaseType();
+                //code.genLoad(Type.AddressType);
+                code.generateOp(Operation.LOAD_FRAME);
+                code.generateOp(Operation.TO_LOCAL);
+            }
+        }
         endGen("Variable");
         return code;
     }
