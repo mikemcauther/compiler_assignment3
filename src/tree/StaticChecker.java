@@ -219,16 +219,25 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
                     formalParam.setOffset(offset);
                 }
 
-                // <4> Coerse CallNode ExpNode
-                if( formalParam.isRef() == false ){
+                // <4> Set actualExpNode type
+                Type refType = new Type.ReferenceType(formalBaseType);
+                if( actualExpNode instanceof ExpNode.VariableNode ){
+                    actualExpNode.setType(refType);
+                }else {
                     actualExpNode.setType(formalBaseType);
-                    actualExpNode = formalBaseType.coerceExp(actualExpNode);
                 }
 
-                // <5> Set ExpNode back to ArrayList
+                // <5> Coerse CallNode ExpNode
+                if( formalParam.isRef() == false ){
+                    actualExpNode = formalBaseType.coerceExp(actualExpNode);
+                } else {
+                    //actualExpNode = refType.coerceExp(actualExpNode);
+                }
+
+                // <6> Set ExpNode back to ArrayList
                 actualParamNodeList.set(paramIdx,actualExpNode);
             }
-            // <6> Set ExpNode List back to CallNode
+            // <7> Set ExpNode List back to CallNode
             node.setActualParams(actualParamNodeList);
 
             node.setEntry(procEntry);

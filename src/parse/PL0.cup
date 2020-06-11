@@ -435,8 +435,9 @@ FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:type
     |  KW_VAR IDENTIFIER:id COLON TypeIdentifier:type
         {: 
             // Variables are always of ReferenceType.
-            Type.ReferenceType paramType = new Type.ReferenceType(type);
-            SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, paramType, true);
+            //Type.ReferenceType paramType = new Type.ReferenceType(type);
+            //SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, paramType, true);
+            SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, type, true);
             RESULT = entry;
         :}
     |  error
