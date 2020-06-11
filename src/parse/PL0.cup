@@ -388,6 +388,11 @@ ProcedureHead ::= KW_PROCEDURE IDENTIFIER:id
             /* Create a new scope for the symbols local to
              * the procedure. */
             currentScope = currentScope.newScope(procEntry);
+            for(SymEntry.ParamEntry formalParamEntry:pl){
+                if(currentScope.addEntry(formalParamEntry) == null) {
+                    errors.error(id + " duplicate parameter name", idxleft);
+                }
+            }
             RESULT = procEntry;
         :}
     |  KW_PROCEDURE IDENTIFIER:id error
@@ -425,9 +430,6 @@ FormalParamList ::= FormalParamList:fl COMMA FormalParam:fp
 FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:type
         {: 
             SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, type, false);
-            if(currentScope.addEntry(entry) == null) {
-                errors.error(id + " duplicate parameter name", idxleft);
-            }
             RESULT = entry;
         :}
     |  KW_VAR IDENTIFIER:id COLON TypeIdentifier:type
@@ -435,9 +437,6 @@ FormalParam ::= IDENTIFIER:id COLON TypeIdentifier:type
             // Variables are always of ReferenceType.
             Type.ReferenceType paramType = new Type.ReferenceType(type);
             SymEntry.ParamEntry entry = new SymEntry.ParamEntry(id, idxleft, paramType, true);
-            if(currentScope.addEntry(entry) == null) {
-                errors.error(id + " duplicate parameter name", idxleft);
-            }
             RESULT = entry;
         :}
     |  error
