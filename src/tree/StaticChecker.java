@@ -181,6 +181,56 @@ public class StaticChecker implements DeclVisitor, StatementVisitor,
         SymEntry entry = currentScope.lookup(node.getId());
         if (entry instanceof SymEntry.ProcedureEntry) {
             SymEntry.ProcedureEntry procEntry = (SymEntry.ProcedureEntry) entry;
+            Type.ProcedureType procType = (Type.ProcedureType)(procEntry.getType());
+            
+            // Loop to compare between actual param list and formal param list (<1> Param List length <2> Type <3> allocate offset )
+            List<ExpNode> actualParamNodeList = node.getActualParams(); 
+            List<SymEntry.ParamEntry> formalParams = procType.getFormalParams();
+            int paramLen = actualParamNodeList.size();
+            if( actualParamNodeList.size() != formalParams.size() ){
+                staticError("Formal param number does not match actual param number! ", node.getLocation());
+            }
+            for(int paramIdx = 0;paramIdx < paramLen ;paramIdx++){
+                SymEntry.ParamEntry formalParam = formalParams.get(paramIdx);
+                Type formalBaseType = ((Type.ReferenceType) formalParam.getType()).getBaseType();
+                ExpNode actualExpNode = actualParamNodeList.get(paramIdx);
+                Type actualParamType = null;
+                Type actualPrarmBaseType = null;
+
+                // <1> Do Transform
+                actualExpNode.transform(this);
+                actualParamType = actualExpNode.getType();
+
+                // <2> Check Is Reference Type
+                if( actualParamType instanceof Type.ReferenceType ){
+                    actualPrarmBaseType = ((Type.ReferenceType) (actualParamType)).getBaseType();
+                } else {
+                    if( formalParam.isRef() == true ){
+                        staticError("var param must be LValue ", node.getLocation());
+                    }
+                    if( actualParamType != formalBaseType  ){
+                        staticError("invalid actual parameter type ", node.getLocation());
+                    }
+                }
+
+                // <3> Allocate space for formalParam
+                if( formalParam.getOffset() == 0 ){
+                    int offset = currentScope.allocParameterSpace(formalBaseType.getSpace());
+                    formalParam.setOffset(offset);
+                }
+
+                // <4> Coerse CallNode ExpNode
+                if( formalParam.isRef() == false ){
+                    actualExpNode.setType(formalBaseType);
+                    actualExpNode = formalBaseType.coerceExp(actualExpNode);
+                }
+
+                // <5> Set ExpNode back to ArrayList
+                actualParamNodeList.add(paramIdx,actualExpNode);
+            }
+            // <6> Set ExpNode List back to CallNode
+            node.setActualParams(actualParamNodeList);
+
             node.setEntry(procEntry);
         } else {
             staticError("Procedure identifier required", node.getLocation());
